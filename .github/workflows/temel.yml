@@ -1,0 +1,28 @@
+name: Temel Bot
+
+on:
+  schedule:
+    - cron: "0 * * * *"   # her saat başı çalışır
+  workflow_dispatch:       # manuel tetikleme için
+
+jobs:
+  run:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v3
+
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: "3.12"
+
+      - name: Install dependencies
+        run: |
+          pip install requests pandas
+
+      - name: Run Temel bot
+        env:
+          BOT_SECRET: ${{ secrets.BOT_SECRET }}
+        run: python temel.py
