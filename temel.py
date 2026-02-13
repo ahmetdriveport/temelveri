@@ -28,11 +28,16 @@ def send_message(text):
     payload = {"chat_id": CHAT_ID, "text": text}
     requests.post(url, data=payload)
 
+def normalize(text):
+    if text is None:
+        return ""
+    return str(text).replace(",", "").replace("  ", " ").strip().lower()
+
 def apply_filter(rows):
     if os.path.exists(filter_file):
-        filt = pd.read_csv(filter_file, encoding="utf-8")
-        exclude_titles = set(filt.iloc[:, 0].dropna().astype(str))
-        return [row for row in rows if str(row["title"]) not in exclude_titles]
+        filt = pd.read_csv(filter_file, encoding="utf-8", usecols=[0])
+        exclude_titles = set(normalize(t) for t in filt.iloc[:, 0].dropna())
+        return [row for row in rows if normalize(row["title"]) not in exclude_titles]
     return rows
 
 def run():
