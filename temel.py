@@ -3,13 +3,12 @@ import requests
 import pandas as pd
 from datetime import datetime, timedelta
 
-# Secret içinden TOKEN ve CHAT_ID çek
-secret_value = os.getenv("BOT_SECRET")
+# Tek secret: TOKEN (JSON içerikli)
+secret_value = os.getenv("TOKEN")
 data = json.loads(secret_value)
 TOKEN = data["TOKEN"]
 CHAT_ID = data["CHAT_ID"]
 
-# Dosya yolları
 cache_file = "data/cache.csv"
 filter_file = "data/filters.csv"
 
