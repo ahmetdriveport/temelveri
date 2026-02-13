@@ -1,1 +1,1 @@
-# temelveri
+kap verilerini filtreleyen kod
