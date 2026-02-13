@@ -8,10 +8,14 @@ on:
 jobs:
   run:
     runs-on: ubuntu-latest
+    permissions:
+      contents: write   # repo'ya push için gerekli
 
     steps:
       - name: Checkout repo
         uses: actions/checkout@v3
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Set up Python
         uses: actions/setup-python@v4
