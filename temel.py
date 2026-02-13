@@ -72,7 +72,6 @@ def run():
             disclosure_index = basic.get("disclosureIndex", 0)
             if disclosure_index > last_index:
                 rows.append({
-                    "companyTitle": basic.get("companyTitle"),
                     "stockCode": basic.get("stockCode"),
                     "title": basic.get("title"),
                     "publishDate": basic.get("publishDate"),
@@ -89,11 +88,9 @@ def run():
         now = datetime.now().strftime("%d %B %Y, %H:%M")
         for row in rows:
             link = f"https://www.kap.org.tr/tr/Bildirim/{row['disclosureIndex']}"
-            msg = (f"{row['companyTitle']} ({row['stockCode']})\n"
-                   f"Başlık: {row['title']}\n"
-                   f"Tarih: {row['publishDate']}\n"
+            msg = (f"{row['stockCode']} | {row['title']}\n"
+                   f"{row['publishDate']}\n"
                    f"Özet: {row['summary']}\n"
-                   f"Index: {row['disclosureIndex']}\n"
                    f"Link: {link}")
             send_message(msg)
         send_message(f"Son index: {new_index}\nSon çalıştırma zamanı: {now}")
