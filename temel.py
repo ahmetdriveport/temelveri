@@ -10,7 +10,8 @@ CHAT_ID = data["CHAT_ID"]
 
 cache_file = "data/cache.csv"
 stock_filter_file = "data/bist_tum.csv"
-title_filter_file = "data/filters.txt"
+title_filter_file = "data/title.txt"
+summary_filter_file = "data/summary.txt"
 
 def load_last_index():
     if os.path.exists(cache_file):
@@ -39,6 +40,12 @@ def load_title_filters():
             return set(line.strip().lower() for line in f if line.strip())
     return set()
 
+def load_summary_filters():
+    if os.path.exists(summary_filter_file):
+        with open(summary_filter_file, "r", encoding="utf-8") as f:
+            return set(line.strip().lower() for line in f if line.strip())
+    return set()
+
 def parse_stock_codes(raw_code):
     if not raw_code or str(raw_code).strip() == "":
         return []  # boş hücre
@@ -47,6 +54,7 @@ def parse_stock_codes(raw_code):
 def filter_rows(rows):
     stock_filters = load_stock_filters()
     title_filters = load_title_filters()
+    summary_filters = load_summary_filters()
     accepted = []
     for row in rows:
         # Title filtresi
@@ -63,6 +71,11 @@ def filter_rows(rows):
         if not valid:
             continue  # hiç eşleşme yoksa reddet
         row["stockCode"] = ", ".join(valid)
+
+        # Summary filtresi
+        summary = (row.get("summary") or "").lower()
+        if any(f in summary for f in summary_filters):
+            continue  # summary eşleşirse reddet
 
         accepted.append(row)
     return accepted
