@@ -57,22 +57,22 @@ def filter_rows(rows):
     summary_filters = load_summary_filters()
     accepted = []
     for row in rows:
-        # Title filtresi
+        # 1) StockCode filtresi
+        codes = parse_stock_codes(row["stockCode"])
+        if not codes:  # boş hücre → bildirimi al
+            pass
+        else:
+            valid = [c for c in codes if c in stock_filters]
+            if not valid:
+                continue  # hiç eşleşme yoksa reddet
+            row["stockCode"] = ", ".join(valid)
+
+        # 2) Title filtresi
         title = (row.get("title") or "").lower()
         if title in title_filters:
             continue  # listedeki başlık → reddet
 
-        # StockCode filtresi
-        codes = parse_stock_codes(row["stockCode"])
-        if not codes:  # boş hücre → bildirimi al
-            accepted.append(row)
-            continue
-        valid = [c for c in codes if c in stock_filters]
-        if not valid:
-            continue  # hiç eşleşme yoksa reddet
-        row["stockCode"] = ", ".join(valid)
-
-        # Summary filtresi
+        # 3) Summary filtresi
         summary = (row.get("summary") or "").lower()
         if any(f in summary for f in summary_filters):
             continue  # summary eşleşirse reddet
@@ -104,6 +104,7 @@ def run():
         send_message(f"API hatası: {e}")
         return
 
+    # 1) Index kontrolü
     last_index = load_last_index()
     rows = []
     if isinstance(data, list):
@@ -119,6 +120,7 @@ def run():
                     "disclosureIndex": disclosure_index
                 })
 
+    # 2) StockCode → 3) Title → 4) Summary filtreleri
     rows = filter_rows(rows)
     rows.sort(key=lambda x: x["disclosureIndex"])
 
