@@ -3,7 +3,6 @@ import requests
 import pandas as pd
 from datetime import datetime, timedelta
 
-# Tek secret: TOKEN (JSON içerikli)
 secret_value = os.getenv("TOKEN")
 data = json.loads(secret_value)
 TOKEN = data["TOKEN"]
@@ -28,17 +27,30 @@ def send_message(text):
     payload = {"chat_id": CHAT_ID, "text": text}
     requests.post(url, data=payload)
 
-def normalize(text):
-    if text is None:
-        return ""
-    return str(text).replace(",", "").replace("  ", " ").strip().lower()
-
-def apply_filter(rows):
+def load_filter_codes():
     if os.path.exists(filter_file):
-        filt = pd.read_csv(filter_file, encoding="utf-8", usecols=[0])
-        exclude_titles = set(normalize(t) for t in filt.iloc[:, 0].dropna())
-        return [row for row in rows if normalize(row["title"]) not in exclude_titles]
-    return rows
+        return set(pd.read_csv(filter_file, encoding="utf-8", usecols=[0]).iloc[:,0].dropna().str.strip().str.upper())
+    return set()
+
+def parse_stock_codes(raw_code):
+    if not raw_code or str(raw_code).strip() == "":
+        return []  # boş hücre
+    return [c.strip().upper() for c in str(raw_code).split(",") if c.strip()]
+
+def filter_rows(rows):
+    filt_codes = load_filter_codes()
+    accepted = []
+    for row in rows:
+        codes = parse_stock_codes(row["stockCode"])
+        if not codes:  # boş hücre → bildirimi al
+            accepted.append(row)
+            continue
+        valid = [c for c in codes if c in filt_codes]
+        if valid:  # en az bir eşleşme varsa
+            row["stockCode"] = ", ".join(valid)
+            accepted.append(row)
+        # hiç eşleşme yoksa → reddediyoruz
+    return accepted
 
 def run():
     session = requests.Session()
@@ -79,7 +91,7 @@ def run():
                     "disclosureIndex": disclosure_index
                 })
 
-    rows = apply_filter(rows)
+    rows = filter_rows(rows)
     rows.sort(key=lambda x: x["disclosureIndex"])
 
     if rows:
