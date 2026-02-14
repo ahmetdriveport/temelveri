@@ -10,25 +10,27 @@ def fetch_tum():
     resp.raise_for_status()
     df_raw = pd.read_excel(BytesIO(resp.content), header=None)
 
-    endeks_dict = {}
+    tum_codes = []
     cur = None
-    for i in range(len(df_raw) - 1):
+    for i in range(len(df_raw)):
         vals = [str(df_raw.iat[i, j]).strip() if pd.notna(df_raw.iat[i, j]) else "" 
                 for j in range(min(5, df_raw.shape[1]))]
-        nxt = str(df_raw.iat[i+1, 0]).strip() if pd.notna(df_raw.iat[i+1, 0]) else ""
-        baslik = next((v for v in vals if v.upper().startswith("BIST") or v.upper()=="TÜM"), None)
-        if baslik and nxt == "1":
-            cur = baslik
-            endeks_dict[cur] = []
+
+        # Başlık satırını yakala
+        if any(v.upper() == "TÜM" for v in vals):
+            cur = "TÜM"
             continue
-        if vals and vals[0].isdigit() and cur:
-            endeks_dict[cur].append(vals[1] if len(vals) > 1 else "")
 
-    df_endeks = pd.DataFrame({k: pd.Series(v) for k, v in endeks_dict.items()})
+        # Eğer TÜM başlığı altındaysak ve satır numara ile başlıyorsa → hisse satırı
+        if cur == "TÜM" and vals and vals[0].isdigit():
+            if len(vals) > 1 and vals[1]:
+                tum_codes.append(vals[1])
 
-    # TÜM kolonunu al
-    tum_list = df_endeks.get("TÜM").dropna().astype(str).str.strip().unique()
-    return tum_list
+        # Başka bir endeks başlığına geçerse TÜM biter
+        if cur == "TÜM" and any(v.upper().startswith("BIST") for v in vals):
+            break
+
+    return tum_codes
 
 def save_to_csv(codes, path="data/bist_tum.csv"):
     os.makedirs(os.path.dirname(path), exist_ok=True)
