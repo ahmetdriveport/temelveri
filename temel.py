@@ -9,7 +9,8 @@ TOKEN = data["TOKEN"]
 CHAT_ID = data["CHAT_ID"]
 
 cache_file = "data/cache.csv"
-filter_file = "data/filters.csv"
+stock_filter_file = "data/bist_tum.csv"
+title_filter_file = "data/filters.txt"
 
 def load_last_index():
     if os.path.exists(cache_file):
@@ -27,9 +28,15 @@ def send_message(text):
     payload = {"chat_id": CHAT_ID, "text": text}
     requests.post(url, data=payload)
 
-def load_filter_codes():
-    if os.path.exists(filter_file):
-        return set(pd.read_csv(filter_file, encoding="utf-8", usecols=[0]).iloc[:,0].dropna().str.strip().str.upper())
+def load_stock_filters():
+    if os.path.exists(stock_filter_file):
+        return set(pd.read_csv(stock_filter_file, encoding="utf-8", usecols=[0]).iloc[:,0].dropna().str.strip().str.upper())
+    return set()
+
+def load_title_filters():
+    if os.path.exists(title_filter_file):
+        with open(title_filter_file, "r", encoding="utf-8") as f:
+            return set(line.strip().lower() for line in f if line.strip())
     return set()
 
 def parse_stock_codes(raw_code):
@@ -38,18 +45,26 @@ def parse_stock_codes(raw_code):
     return [c.strip().upper() for c in str(raw_code).split(",") if c.strip()]
 
 def filter_rows(rows):
-    filt_codes = load_filter_codes()
+    stock_filters = load_stock_filters()
+    title_filters = load_title_filters()
     accepted = []
     for row in rows:
+        # Title filtresi
+        title = (row.get("title") or "").lower()
+        if title in title_filters:
+            continue  # listedeki başlık → reddet
+
+        # StockCode filtresi
         codes = parse_stock_codes(row["stockCode"])
         if not codes:  # boş hücre → bildirimi al
             accepted.append(row)
             continue
-        valid = [c for c in codes if c in filt_codes]
-        if valid:  # en az bir eşleşme varsa
-            row["stockCode"] = ", ".join(valid)
-            accepted.append(row)
-        # hiç eşleşme yoksa → reddediyoruz
+        valid = [c for c in codes if c in stock_filters]
+        if not valid:
+            continue  # hiç eşleşme yoksa reddet
+        row["stockCode"] = ", ".join(valid)
+
+        accepted.append(row)
     return accepted
 
 def run():
