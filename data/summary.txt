@@ -67,6 +67,7 @@ Genel, Müdür, İstifa
 gösterge, net, aktif, değer, sapma
 Hasılat, Beklenti
 ISIN, kodlu, tahvil
+Katılım, Finans, İlke Bilgi,Form
 Kalite, Belgesi
 Konsolide, Finansal, Rapor, hk.
 Kredi, Teminat, İpotek
