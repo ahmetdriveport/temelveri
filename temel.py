@@ -43,12 +43,17 @@ def load_title_filters():
 def load_summary_filters():
     if os.path.exists(summary_filter_file):
         with open(summary_filter_file, "r", encoding="utf-8") as f:
-            return set(line.strip().lower() for line in f if line.strip())
-    return set()
+            filters = []
+            for line in f:
+                if line.strip():
+                    words = [w.strip().lower() for w in line.split(",") if w.strip()]
+                    filters.append(words)
+            return filters
+    return []
 
 def parse_stock_codes(raw_code):
     if not raw_code or str(raw_code).strip() == "":
-        return []  # boş hücre
+        return []
     return [c.strip().upper() for c in str(raw_code).split(",") if c.strip()]
 
 def filter_rows(rows):
@@ -57,25 +62,27 @@ def filter_rows(rows):
     summary_filters = load_summary_filters()
     accepted = []
     for row in rows:
-        # 1) StockCode filtresi
         codes = parse_stock_codes(row["stockCode"])
-        if not codes:  # boş hücre → bildirimi al
+        if not codes:
             pass
         else:
             valid = [c for c in codes if c in stock_filters]
             if not valid:
-                continue  # hiç eşleşme yoksa reddet
+                continue
             row["stockCode"] = ", ".join(valid)
 
-        # 2) Title filtresi
         title = (row.get("title") or "").lower()
         if title in title_filters:
-            continue  # listedeki başlık → reddet
+            continue
 
-        # 3) Summary filtresi
         summary = (row.get("summary") or "").lower()
-        if any(f in summary for f in summary_filters):
-            continue  # summary eşleşirse reddet
+        blocked = False
+        for group in summary_filters:
+            if all(word in summary for word in group):
+                blocked = True
+                break
+        if blocked:
+            continue
 
         accepted.append(row)
     return accepted
@@ -104,7 +111,6 @@ def run():
         send_message(f"API hatası: {e}")
         return
 
-    # 1) Index kontrolü
     last_index = load_last_index()
     rows = []
     if isinstance(data, list):
@@ -120,7 +126,6 @@ def run():
                     "disclosureIndex": disclosure_index
                 })
 
-    # 2) StockCode → 3) Title → 4) Summary filtreleri
     rows = filter_rows(rows)
     rows.sort(key=lambda x: x["disclosureIndex"])
 
