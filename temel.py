@@ -138,7 +138,7 @@ def run():
             msg = (f"{row['stockCode']} | {row['title']}\n"
                    f"{row['publishDate']}\n"
                    f"Özet: {row['summary']}\n"
-                   f"Link: {link}")
+                   f"Link: {link}\n")
             send_message(msg)
         send_message(f"Son index: {new_index}\nSon çalıştırma zamanı: {now}")
     else:
