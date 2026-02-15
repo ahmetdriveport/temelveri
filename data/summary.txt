@@ -1,1 +1,160 @@
-3fr
+Analist, Sunum
+Analist, Toplantı
+Ay, Brüt, Prim, Üretim
+Bağımsız, Bölüm, Satış
+Bağımsız, Denetim, Firma
+Bağımsız, Denetim, Kuruluş
+Bağımsız, Denetim, şirket
+Bağımsız, Üye, Aday
+Bağımsız, YK, Üye
+Bağımsız, Yönetim, Kurul, İstifa
+BAĞIMSIZ, YÖNETİM, KURUL, ÜYE
+Bağış, Ve, Yardım
+Bağış, Yapılması
+Bağlı, Ortaklık, Sermaye, Artırım
+Başarı, Ödülü
+Bedelsiz, Sermaye, Esas, Sözleşme
+BİAŞ, ortalama, fiyat, net, aktif, değer
+Bilgi, Güvenliği, Politika
+Bilgi, Sistem, Yönetim
+Borçlanma, Aracı, İhracı
+Borçlanma, Araç, İhraç
+Capital, 500
+CFO
+ÇED, Belgesi
+ÇED, Olumlu
+ÇED, olumsuz
+ÇED, SÜRECİ
+Değerleme, Şirket, Belirle
+Değerleme, Şirket, Seçim
+Denetim, Şirket, Belirle
+Denetim, şirket, Seçim
+dönem, Brüt, Prim, Üretim
+dönemine, ait, Portföy, Yönetim, Performans
+dönemine, ait, prim, üretimi
+EBRD
+Elde, edilen, Fon, kullanım
+Esas, Sözleşme, Değişik
+Esas, Sözleşme, Tadil
+Faaliyet, Sunum
+Finansal, Rapor, Açıkla
+Finansal, Rapor, Değişik
+finansal, sonuç, beklenti
+Finansal, Sonuç, Bilgi
+Finansal, Sonuç, Bülten
+Finansal, Sonuç, İlan
+Finansal, Sonuç, Sunum
+Finansal, Tablo, Açıkla
+Finansal, Tablo, Konsolide, Hazırla
+Finansal, Tabloların, Açıkla
+Finansal, Yeniden, Yapılandırma, Başvuru
+Finansal, Yeniden, Yapılandırma, Görüşme
+Finansal, Yeniden, Yapılandırma, Sözleşme
+Finansman, bono
+Fiyat, İstikrar, Süreci
+Fon, Kullanım, Rapor
+Fon, Kullanım, Yer
+Fon, Temettü, Ödeme
+Fortune, 500
+Gayrimenkul, Değerleme, Firma
+Gayrimenkul, Değerleme, Kuruluş
+Gayrimenkul, Değerleme, Şirket
+Genel, Merkez, Adres
+Genel, Müdür, ata
+Genel, Müdür, ayrılma
+Genel, Müdür, Değiş
+Genel, Müdür, İstifa
+gösterge, net, aktif, değer, sapma
+Hasılat, Beklenti
+ISIN, kodlu, tahvil
+Kalite, Belgesi
+Konsolide, Finansal, Rapor, hk.
+Kredi, Teminat, İpotek
+KURUMSAL, YÖNETİM, FORM
+Kurumsal, Yönetim, Uyum, Rapor
+Likidite, sağlayıcı
+Mağaza, Açılış
+Mağaza, Kapanış
+Mağaza, Sayısı
+Murabaha, Finansman
+Müdür, atama
+Müdür, İstifa
+OLAĞAN, GENEL, KURUL
+Özel, Durumlar, Tebliği, Açıklama
+Özel, Durumlar, Tebliği, maddesi, gereği
+Portföy, yönetim, performans
+Profesyonel, futbolcu
+Risk, Erken, Sapta, Komite
+Satış, Adedi
+Satış, Adet
+Sendikasyon, Kredisi
+Sermaye, Arttırım, Aracılık, Sözleşme
+Sermaye, Tescil
+Sürdürülebilirlik, Denet
+Sürdürülebilirlik, Uyum, Rapor
+Şube, Açılış
+Şube, Adres
+Şube, Kapanış
+Şube, Sayısı
+Şube, taşınma, 
+Tahvil, İhracı
+Tarihli, Analist, Sunum
+Tarihli, Pay, Geri, Alım
+Tertip/BASK
+Toplu, İş, Görüşme
+Toplu, İş, Sözleşme
+Trafik, Sonuç
+Varant
+Yangın, Soruşturması
+Yatırımcı, İlişki, atama
+Yatırımcı, İlişki, Ayrılma
+Yatırımcı, İlişki, Birim
+Yatırımcı, İlişki, Bölüm
+Yatırımcı, İlişki, Departman
+Yatırımcı, İlişki, Direktör
+Yatırımcı, İlişki, Görev, Değişik
+Yatırımcı, İlişki, Müdür
+Yatırımcı, İlişki, Personel
+Yatırımcı, İlişki, Uzman
+Yatırımcı, İlişki, Yetkili
+Yatırımcı, İlişki, Yönetici
+Yatırımcı, İlişki, yönetici
+Yatırımcı, Sunumu
+YIL, KAR, PAYI, DAĞITIM, İŞLEM
+yılı, Brüt, Prim, Üretim
+Yolcu, Sayı
+Yönetici, Atama
+Yönetici, Ayrılma
+Yönetici, Değişikliği
+Yönetici, Görev
+yönetici, görev, değişik
+Yönetici, İstifa
+Yönetici, Sorumluluk, Poliçe
+Yönetici, Sorumluluk, Sigorta
+Yönetim, Belgesi
+Yönetim, Değişikli
+Yönetim, Kurul, Bağımsız, Aday
+Yönetim, Kurul, Bağımsız, Vefat
+Yönetim, Kurul, Bağış
+Yönetim, Kurul, Başkan
+Yönetim, Kurul, Danışman
+Yönetim, Kurul, Görev, Değiş
+Yönetim, Kurul, Görev, Süre
+Yönetim, Kurul, Görev, Taksim
+Yönetim, Kurul, İstifa
+Yönetim, Kurul, Kar, Dağıtım
+Yönetim, Kurul, Kar, Payı
+Yönetim, Kurul, Komite
+Yönetim, Kurul, Seçim
+Yönetim, Kurul, Temsil
+Yönetim, Kurul, Üye, ata
+Yönetim, Kurul, Üye, belirle
+Yönetim, Kurul, Üye, Değişik
+Yönetim, Kurul, Üye, Görev, Ayrılma
+Yönetim, Kurul, Üye, Görev, Dağılım
+Yönetim, Kurul, Üye, Seçim
+Yönetim, Kurul, Üye, Süre
+Yönetim, Kurul, Üye, Tescil
+Yönetim, Kurul, Yeni, Üye
+Yönetim, Kurulu, Üye, Vefat
+Ziyaretçi, Sayı
