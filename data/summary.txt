@@ -1,6 +1,6 @@
 Analist, Sunum
 Analist, Toplantı
-Ay, Brüt, Prim, Üretim
+Brüt, Prim, Üretim
 Bağımsız, Bölüm, Satış
 Bağımsız, Denetim, Firma
 Bağımsız, Denetim, Kuruluş
