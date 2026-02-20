@@ -155,7 +155,7 @@ def run():
             title_norm = normalize_text(row["title"])
             if title_norm == "payalımsatımbildirimi":
                 if row["attachments"]:
-                    pdf_url = row["attachments"][0].get("fileUrl")
+                    pdf_url = "https://www.kap.org.tr" + row["attachments"][0].get("fileUrl")
                     try:
                         r_pdf = requests.get(pdf_url, timeout=30)
                         if "application/pdf" in r_pdf.headers.get("Content-Type", ""):
