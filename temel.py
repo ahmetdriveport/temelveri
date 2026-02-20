@@ -140,7 +140,8 @@ def run():
                     "title": basic.get("title"),
                     "publishDate": basic.get("publishDate"),
                     "summary": basic.get("summary"),
-                    "disclosureIndex": disclosure_index
+                    "disclosureIndex": disclosure_index,
+                    "attachments": item.get("attachments", [])
                 })
 
     rows = filter_rows(rows)
@@ -153,16 +154,22 @@ def run():
         for row in rows:
             title_norm = normalize_text(row["title"])
             if title_norm == "payalımsatımbildirimi":
-                pdf_url = f"https://www.kap.org.tr/tr/BildirimPdf/{row['disclosureIndex']}"
-                try:
-                    r_pdf = requests.get(pdf_url, timeout=30)
-                    file_path = f"data/{row['disclosureIndex']}.pdf"
-                    os.makedirs("data", exist_ok=True)
-                    with open(file_path, "wb") as f:
-                        f.write(r_pdf.content)
-                    send_document(file_path, caption=row["title"])
-                except Exception as e:
-                    send_message(f"PDF indirilemedi: {e}")
+                if row["attachments"]:
+                    pdf_url = row["attachments"][0].get("fileUrl")
+                    try:
+                        r_pdf = requests.get(pdf_url, timeout=30)
+                        if "application/pdf" in r_pdf.headers.get("Content-Type", ""):
+                            file_path = f"data/{row['disclosureIndex']}.pdf"
+                            os.makedirs("data", exist_ok=True)
+                            with open(file_path, "wb") as f:
+                                f.write(r_pdf.content)
+                            send_document(file_path, caption=row["title"])
+                        else:
+                            send_message("PDF bulunamadı veya dosya tipi desteklenmiyor.")
+                    except Exception as e:
+                        send_message(f"PDF indirilemedi: {e}")
+                else:
+                    send_message("Bu bildirimin ek dosyası yok.")
             else:
                 link = f"https://www.kap.org.tr/tr/Bildirim/{row['disclosureIndex']}"
                 msg = (f"{row['stockCode']} | {row['title']}\n"
