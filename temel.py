@@ -2,6 +2,8 @@ import os, json
 import requests
 import pandas as pd
 from datetime import datetime, timedelta
+import unicodedata
+import re
 
 secret_value = os.getenv("TOKEN")
 data = json.loads(secret_value)
@@ -12,6 +14,14 @@ cache_file = "data/cache.csv"
 stock_filter_file = "data/bist_tum.csv"
 title_filter_file = "data/title.txt"
 summary_filter_file = "data/summary.txt"
+
+def normalize_text(s):
+    if not s:
+        return ""
+    s = unicodedata.normalize("NFKC", s)
+    s = s.lower()
+    s = re.sub(r"\s+", "", s)
+    return s
 
 def load_last_index():
     if os.path.exists(cache_file):
@@ -37,7 +47,7 @@ def load_stock_filters():
 def load_title_filters():
     if os.path.exists(title_filter_file):
         with open(title_filter_file, "r", encoding="utf-8") as f:
-            return set(line.strip().lower() for line in f if line.strip())
+            return set(normalize_text(line) for line in f if line.strip())
     return set()
 
 def load_summary_filters():
@@ -46,7 +56,7 @@ def load_summary_filters():
             filters = []
             for line in f:
                 if line.strip():
-                    words = [w.strip().lower() for w in line.split(",") if w.strip()]
+                    words = [normalize_text(w) for w in line.split(",") if w.strip()]
                     filters.append(words)
             return filters
     return []
@@ -71,11 +81,11 @@ def filter_rows(rows):
                 continue
             row["stockCode"] = ", ".join(valid)
 
-        title = (row.get("title") or "").lower()
+        title = normalize_text(row.get("title") or "")
         if title in title_filters:
             continue
 
-        summary = (row.get("summary") or "").lower()
+        summary = normalize_text(row.get("summary") or "")
         blocked = False
         for group in summary_filters:
             if all(word in summary for word in group):
