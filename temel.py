@@ -11,9 +11,6 @@ TOKEN = data["TOKEN"]
 CHAT_ID = data["CHAT_ID"]
 
 cache_file = "data/cache.csv"
-stock_filter_file = "data/bist_tum.csv"
-title_filter_file = "data/title.txt"
-summary_filter_file = "data/summary.txt"
 
 def normalize_text(s):
     if not s:
@@ -46,63 +43,10 @@ def send_document(file_path, caption=""):
         files = {"document": f}
         requests.post(url, data=payload, files=files)
 
-def load_stock_filters():
-    if os.path.exists(stock_filter_file):
-        return set(pd.read_csv(stock_filter_file, encoding="utf-8", usecols=[0]).iloc[:,0].dropna().str.strip().str.upper())
-    return set()
-
-def load_title_filters():
-    if os.path.exists(title_filter_file):
-        with open(title_filter_file, "r", encoding="utf-8") as f:
-            return set(normalize_text(line) for line in f if line.strip())
-    return set()
-
-def load_summary_filters():
-    if os.path.exists(summary_filter_file):
-        with open(summary_filter_file, "r", encoding="utf-8") as f:
-            filters = []
-            for line in f:
-                if line.strip():
-                    words = [normalize_text(w) for w in line.split(",") if w.strip()]
-                    filters.append(words)
-            return filters
-    return []
-
-def parse_stock_codes(raw_code):
-    if not raw_code or str(raw_code).strip() == "":
-        return []
-    return [c.strip().upper() for c in str(raw_code).split(",") if c.strip()]
-
-def filter_rows(rows):
-    stock_filters = load_stock_filters()
-    title_filters = load_title_filters()
-    summary_filters = load_summary_filters()
-    accepted = []
-    for row in rows:
-        codes = parse_stock_codes(row["stockCode"])
-        if not codes:
-            pass
-        else:
-            valid = [c for c in codes if c in stock_filters]
-            if not valid:
-                continue
-            row["stockCode"] = ", ".join(valid)
-
-        title = normalize_text(row.get("title") or "")
-        if title in title_filters:
-            continue
-
-        summary = normalize_text(row.get("summary") or "")
-        blocked = False
-        for group in summary_filters:
-            if all(word in summary for word in group):
-                blocked = True
-                break
-        if blocked:
-            continue
-
-        accepted.append(row)
-    return accepted
+def get_disclosure_detail(disclosure_index):
+    url = f"https://www.kap.org.tr/tr/api/disclosure/detail/{disclosure_index}"
+    r = requests.get(url, timeout=30)
+    return r.json()
 
 def run():
     session = requests.Session()
@@ -140,11 +84,9 @@ def run():
                     "title": basic.get("title"),
                     "publishDate": basic.get("publishDate"),
                     "summary": basic.get("summary"),
-                    "disclosureIndex": disclosure_index,
-                    "attachments": item.get("attachments", [])
+                    "disclosureIndex": disclosure_index
                 })
 
-    rows = filter_rows(rows)
     rows.sort(key=lambda x: x["disclosureIndex"])
 
     if rows:
@@ -154,8 +96,10 @@ def run():
         for row in rows:
             title_norm = normalize_text(row["title"])
             if title_norm == "payalımsatımbildirimi":
-                if row["attachments"]:
-                    pdf_url = "https://www.kap.org.tr" + row["attachments"][0].get("fileUrl")
+                detail = get_disclosure_detail(row["disclosureIndex"])
+                attachments = detail.get("attachments", [])
+                if attachments:
+                    pdf_url = "https://www.kap.org.tr" + attachments[0].get("fileUrl")
                     try:
                         r_pdf = requests.get(pdf_url, timeout=30)
                         if "application/pdf" in r_pdf.headers.get("Content-Type", ""):
