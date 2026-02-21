@@ -24,7 +24,7 @@ jobs:
 
       - name: Install dependencies
         run: |
-          pip install requests pandas beautifulsoup4
+          pip install requests pandas
 
       - name: Run Temel bot
         env:
