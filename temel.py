@@ -4,6 +4,7 @@ import pandas as pd
 from datetime import datetime, timedelta
 import unicodedata
 import re
+from bs4 import BeautifulSoup
 
 secret_value = os.getenv("TOKEN")
 data = json.loads(secret_value)
@@ -97,6 +98,16 @@ def filter_rows(rows):
         accepted.append(row)
     return accepted
 
+def get_attachment_link(disclosure_index):
+    url = f"https://www.kap.org.tr/tr/Bildirim/{disclosure_index}"
+    headers = {"User-Agent": "Mozilla/5.0"}
+    r = requests.get(url, headers=headers, timeout=30)
+    soup = BeautifulSoup(r.text, "html.parser")
+    link_tag = soup.find("a", href=lambda h: h and "/tr/api/file/download/" in h)
+    if link_tag:
+        return "https://www.kap.org.tr" + link_tag["href"]
+    return None
+
 def run():
     session = requests.Session()
     session.headers.update({"User-Agent": "Mozilla/5.0", "Accept": "application/json"})
@@ -133,8 +144,7 @@ def run():
                     "title": basic.get("title"),
                     "publishDate": basic.get("publishDate"),
                     "summary": basic.get("summary"),
-                    "disclosureIndex": disclosure_index,
-                    "attachments": item.get("attachments", [])
+                    "disclosureIndex": disclosure_index
                 })
 
     rows = filter_rows(rows)
@@ -147,15 +157,15 @@ def run():
         for row in rows:
             title_norm = normalize_text(row["title"])
             if title_norm == "payalımsatımbildirimi":
-                if row["attachments"]:
-                    pdf_url = row["attachments"][0].get("fileUrl")
+                pdf_url = get_attachment_link(row["disclosureIndex"])
+                if pdf_url:
                     msg = (f"{row['stockCode']} | {row['title']}\n"
                            f"{row['publishDate']}\n"
                            f"Özet: {row['summary']}\n"
-                           f"Link: https://www.kap.org.tr{pdf_url}\n\n")
+                           f"Link: {pdf_url}\n\n")
                     send_message(msg)
                 else:
-                    # fallback: bildirim linki
+                    # fallback
                     link = f"https://www.kap.org.tr/tr/Bildirim/{row['disclosureIndex']}"
                     msg = (f"{row['stockCode']} | {row['title']}\n"
                            f"{row['publishDate']}\n"
