@@ -1,10 +1,9 @@
 import os, json
 import requests
 import pandas as pd
-from datetime import datetime, timedelta
+from datetime import datetime
 import unicodedata
 import re
-from bs4 import BeautifulSoup
 
 secret_value = os.getenv("TOKEN")
 data = json.loads(secret_value)
@@ -39,13 +38,6 @@ def send_message(text):
     url = f"https://api.telegram.org/bot{TOKEN}/sendMessage"
     payload = {"chat_id": CHAT_ID, "text": text}
     requests.post(url, data=payload)
-
-def send_document(file_path, caption=""):
-    url = f"https://api.telegram.org/bot{TOKEN}/sendDocument"
-    with open(file_path, "rb") as f:
-        payload = {"chat_id": CHAT_ID, "caption": caption}
-        files = {"document": f}
-        requests.post(url, data=payload, files=files)
 
 def load_stock_filters():
     if os.path.exists(stock_filter_file):
@@ -105,26 +97,15 @@ def filter_rows(rows):
         accepted.append(row)
     return accepted
 
-def get_attachment_link(disclosure_index):
-    url = f"https://www.kap.org.tr/tr/Bildirim/{disclosure_index}"
-    headers = {"User-Agent": "Mozilla/5.0"}
-    r = requests.get(url, headers=headers, timeout=30)
-    soup = BeautifulSoup(r.text, "html.parser")
-    link_tag = soup.find("a", href=lambda h: h and "/tr/api/file/download/" in h)
-    if link_tag:
-        return "https://www.kap.org.tr" + link_tag["href"]
-    return None
-
 def run():
     session = requests.Session()
     session.headers.update({"User-Agent": "Mozilla/5.0", "Accept": "application/json"})
     url = "https://www.kap.org.tr/tr/api/disclosure/list/main"
 
     today = datetime.now().strftime("%d.%m.%Y")
-    yesterday = (datetime.now() - timedelta(days=1)).strftime("%d.%m.%Y")
 
     payload = {
-        "fromDate": yesterday,
+        "fromDate": today,
         "toDate": today,
         "disclosureTypes": None,
         "fundTypes": None,
@@ -162,50 +143,12 @@ def run():
         save_last_index(new_index)
         now = datetime.now().strftime("%d %B %Y, %H:%M")
         for row in rows:
-            title_norm = normalize_text(row["title"])
-            if title_norm == "payalımsatımbildirimi":
-                pdf_url = get_attachment_link(row["disclosureIndex"])
-                if pdf_url:
-                    try:
-                        r_pdf = requests.get(pdf_url, timeout=30)
-                        content_type = r_pdf.headers.get("Content-Type", "").lower()
-                        if "pdf" in content_type or pdf_url.endswith(".pdf"):
-                            file_path = f"data/{row['disclosureIndex']}.pdf"
-                            os.makedirs("data", exist_ok=True)
-                            with open(file_path, "wb") as f:
-                                f.write(r_pdf.content)
-                            send_document(file_path, caption=row["title"])
-                        else:
-                            # fallback: normal bildirim formatı
-                            link = f"https://www.kap.org.tr/tr/Bildirim/{row['disclosureIndex']}"
-                            msg = (f"{row['stockCode']} | {row['title']}\n"
-                                   f"{row['publishDate']}\n"
-                                   f"Özet: {row['summary']}\n"
-                                   f"Link: {link}\n\n")
-                            send_message(msg)
-                    except Exception:
-                        # fallback: normal bildirim formatı
-                        link = f"https://www.kap.org.tr/tr/Bildirim/{row['disclosureIndex']}"
-                        msg = (f"{row['stockCode']} | {row['title']}\n"
-                               f"{row['publishDate']}\n"
-                               f"Özet: {row['summary']}\n"
-                               f"Link: {link}\n\n")
-                        send_message(msg)
-                else:
-                    # fallback: normal bildirim formatı
-                    link = f"https://www.kap.org.tr/tr/Bildirim/{row['disclosureIndex']}"
-                    msg = (f"{row['stockCode']} | {row['title']}\n"
-                           f"{row['publishDate']}\n"
-                           f"Özet: {row['summary']}\n"
-                           f"Link: {link}\n\n")
-                    send_message(msg)
-            else:
-                link = f"https://www.kap.org.tr/tr/Bildirim/{row['disclosureIndex']}"
-                msg = (f"{row['stockCode']} | {row['title']}\n"
-                       f"{row['publishDate']}\n"
-                       f"Özet: {row['summary']}\n"
-                       f"Link: {link}\n\n")
-                send_message(msg)
+            link = f"https://www.kap.org.tr/tr/Bildirim/{row['disclosureIndex']}"
+            msg = (f"{row['stockCode']} | {row['title']}\n"
+                   f"{row['publishDate']}\n"
+                   f"Özet: {row['summary']}\n"
+                   f"Link: {link}\n\n")
+            send_message(msg)
         send_message(f"Son index: {new_index}\nSon çalıştırma zamanı: {now}")
     else:
         send_message("Yeni bildirim yok.")
