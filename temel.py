@@ -11,6 +11,9 @@ TOKEN = data["TOKEN"]
 CHAT_ID = data["CHAT_ID"]
 
 cache_file = "data/cache.csv"
+stock_filter_file = "data/bist_tum.csv"
+title_filter_file = "data/title.txt"
+summary_filter_file = "data/summary.txt"
 
 def normalize_text(s):
     if not s:
@@ -35,6 +38,71 @@ def send_message(text):
     url = f"https://api.telegram.org/bot{TOKEN}/sendMessage"
     payload = {"chat_id": CHAT_ID, "text": text}
     requests.post(url, data=payload)
+
+def send_document(file_path, caption=""):
+    url = f"https://api.telegram.org/bot{TOKEN}/sendDocument"
+    with open(file_path, "rb") as f:
+        payload = {"chat_id": CHAT_ID, "caption": caption}
+        files = {"document": f}
+        requests.post(url, data=payload, files=files)
+
+def load_stock_filters():
+    if os.path.exists(stock_filter_file):
+        return set(pd.read_csv(stock_filter_file, encoding="utf-8", usecols=[0]).iloc[:,0].dropna().str.strip().str.upper())
+    return set()
+
+def load_title_filters():
+    if os.path.exists(title_filter_file):
+        with open(title_filter_file, "r", encoding="utf-8") as f:
+            return set(normalize_text(line) for line in f if line.strip())
+    return set()
+
+def load_summary_filters():
+    if os.path.exists(summary_filter_file):
+        with open(summary_filter_file, "r", encoding="utf-8") as f:
+            filters = []
+            for line in f:
+                if line.strip():
+                    words = [normalize_text(w) for w in line.split(",") if w.strip()]
+                    filters.append(words)
+            return filters
+    return []
+
+def parse_stock_codes(raw_code):
+    if not raw_code or str(raw_code).strip() == "":
+        return []
+    return [c.strip().upper() for c in str(raw_code).split(",") if c.strip()]
+
+def filter_rows(rows):
+    stock_filters = load_stock_filters()
+    title_filters = load_title_filters()
+    summary_filters = load_summary_filters()
+    accepted = []
+    for row in rows:
+        codes = parse_stock_codes(row["stockCode"])
+        if not codes:
+            pass
+        else:
+            valid = [c for c in codes if c in stock_filters]
+            if not valid:
+                continue
+            row["stockCode"] = ", ".join(valid)
+
+        title = normalize_text(row.get("title") or "")
+        if title in title_filters:
+            continue
+
+        summary = normalize_text(row.get("summary") or "")
+        blocked = False
+        for group in summary_filters:
+            if all(word in summary for word in group):
+                blocked = True
+                break
+        if blocked:
+            continue
+
+        accepted.append(row)
+    return accepted
 
 def run():
     session = requests.Session()
@@ -76,6 +144,7 @@ def run():
                     "attachments": item.get("attachments", [])
                 })
 
+    rows = filter_rows(rows)
     rows.sort(key=lambda x: x["disclosureIndex"])
 
     if rows:
@@ -86,22 +155,22 @@ def run():
             title_norm = normalize_text(row["title"])
             if title_norm == "payalımsatımbildirimi":
                 if row["attachments"]:
-                    pdf_url = "https://www.kap.org.tr" + row["attachments"][0].get("fileUrl")
-                    msg = (f"{row['stockCode']} | {row['title']}\n"
-                           f"{row['publishDate']}\n"
-                           f"Özet: {row['summary']}\n"
-                           f"Ek Dosya: {pdf_url}\n\n")
-                    send_message(msg)
+                    pdf_url = row["attachments"][0].get("fileUrl")
+                    try:
+                        r_pdf = requests.get(pdf_url, timeout=30)
+                        if "application/pdf" in r_pdf.headers.get("Content-Type", ""):
+                            file_path = f"data/{row['disclosureIndex']}.pdf"
+                            os.makedirs("data", exist_ok=True)
+                            with open(file_path, "wb") as f:
+                                f.write(r_pdf.content)
+                            send_document(file_path, caption=row["title"])
+                        else:
+                            send_message("PDF bulunamadı veya dosya tipi desteklenmiyor.")
+                    except Exception as e:
+                        send_message(f"PDF indirilemedi: {e}")
                 else:
-                    # attachments yoksa fallback olarak bildirim linki
-                    link = f"https://www.kap.org.tr/tr/Bildirim/{row['disclosureIndex']}"
-                    msg = (f"{row['stockCode']} | {row['title']}\n"
-                           f"{row['publishDate']}\n"
-                           f"Özet: {row['summary']}\n"
-                           f"Link: {link}\n\n")
-                    send_message(msg)
+                    send_message("Bu bildirimin ek dosyası yok.")
             else:
-                # diğer bildirimler için normal link
                 link = f"https://www.kap.org.tr/tr/Bildirim/{row['disclosureIndex']}"
                 msg = (f"{row['stockCode']} | {row['title']}\n"
                        f"{row['publishDate']}\n"
