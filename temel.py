@@ -168,7 +168,8 @@ def run():
                 if pdf_url:
                     try:
                         r_pdf = requests.get(pdf_url, timeout=30)
-                        if "application/pdf" in r_pdf.headers.get("Content-Type", ""):
+                        content_type = r_pdf.headers.get("Content-Type", "").lower()
+                        if "pdf" in content_type or pdf_url.endswith(".pdf"):
                             file_path = f"data/{row['disclosureIndex']}.pdf"
                             os.makedirs("data", exist_ok=True)
                             with open(file_path, "wb") as f:
