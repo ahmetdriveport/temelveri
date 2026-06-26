@@ -10,6 +10,16 @@ data = json.loads(secret_value)
 TOKEN = data["TOKEN"]
 CHAT_ID = data["CHAT_ID"]
 
+# ikinci environment
+secret_value2 = os.getenv("TOKEN2")
+if secret_value2:
+    data2 = json.loads(secret_value2)
+    TOKEN2 = data2["TOKEN"]
+    CHAT_ID2 = data2["CHAT_ID"]
+else:
+    TOKEN2 = None
+    CHAT_ID2 = None
+
 cache_file = "data/cache.csv"
 stock_filter_file = "data/bist_tum.csv"
 title_filter_file = "data/title.txt"
@@ -35,9 +45,14 @@ def save_last_index(value):
     df.to_csv(cache_file, index=False, encoding="utf-8")
 
 def send_message(text):
-    url = f"https://api.telegram.org/bot{TOKEN}/sendMessage"
-    payload = {"chat_id": CHAT_ID, "text": text}
-    requests.post(url, data=payload)
+    url1 = f"https://api.telegram.org/bot{TOKEN}/sendMessage"
+    payload1 = {"chat_id": CHAT_ID, "text": text}
+    requests.post(url1, data=payload1)
+
+    if TOKEN2 and CHAT_ID2:
+        url2 = f"https://api.telegram.org/bot{TOKEN2}/sendMessage"
+        payload2 = {"chat_id": CHAT_ID2, "text": text}
+        requests.post(url2, data=payload2)
 
 def load_stock_filters():
     if os.path.exists(stock_filter_file):
